@@ -39,6 +39,9 @@ public class PerlinNoiseGenerator extends Generator<PerlinNoiseGenerator> {
     // decrease of amplitude per octave
     private float roughness = 0;
 
+    private int xBase = 0;
+    private int zBase = 0;
+
     PerlinNoiseGenerator(TerrainComponent terrainComponent) {
         super(terrainComponent.getTerrainAsset().getTerrain());
         this.terrainComponent = terrainComponent;
@@ -66,13 +69,15 @@ public class PerlinNoiseGenerator extends Generator<PerlinNoiseGenerator> {
         // final float d = (float) Math.pow(2, this.octaves);
 
         for (int i = 0; i < terrain.heightData.length; i++) {
-            int x = i % terrain.vertexResolution;
-            int z = (int) Math.floor((double) i / terrain.vertexResolution);
+            int ox = i % terrain.vertexResolution;
+            int oz = (int) Math.floor((double) i / terrain.vertexResolution);
+            int x = xBase + ox;
+            int z = zBase + oz;
 
             float height = Interpolation.linear.apply(minHeight, maxHeight, getInterpolatedNoise(x / 4f, z / 4f));
             height += Interpolation.linear.apply(minHeight / 3f, maxHeight / 3f, getInterpolatedNoise(x / 2f, z / 2f));
 
-            terrain.heightData[z * terrain.vertexResolution + x] = height;
+            terrain.heightData[ox * terrain.vertexResolution + oz] = height;
         }
 
         terrain.update();

@@ -16,6 +16,7 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
  * @version July 01, 2022
  */
 public class MundusPBRShaderProvider extends PBRShaderProvider {
+    private final StringBuilder sb = new StringBuilder();
 
     public MundusPBRShaderProvider(PBRShaderConfig config) {
         super(config);
@@ -55,55 +56,65 @@ public class MundusPBRShaderProvider extends PBRShaderProvider {
     }
 
     protected String getTerrainPrefix(TerrainMaterial terrainMaterial) {
-        String prefix = "";
+        sb.setLength(0);
+
         if (terrainMaterial.isTriplanar()) {
-            prefix += "#define triplanarFlag\n";
+            sb.append("#define triplanarFlag\n");
         }
 
         if (terrainMaterial.getSplatmap() != null && terrainMaterial.getSplatmap().getTexture() != null) {
-            prefix += "#define splatFlag\n";
+            sb.append("#define splatFlag\n");
         }
 
         if (terrainMaterial.hasTextureChannel(SplatTexture.Channel.R)) {
-            prefix += "#define splatRFlag\n";
+            sb.append("#define splatRFlag\n");
         }
 
         if (terrainMaterial.hasTextureChannel(SplatTexture.Channel.G)) {
-            prefix += "#define splatGFlag\n";
+            sb.append("#define splatGFlag\n");
         }
 
         if (terrainMaterial.hasTextureChannel(SplatTexture.Channel.B)) {
-            prefix += "#define splatBFlag\n";
+            sb.append("#define splatBFlag\n");
         }
 
         if (terrainMaterial.hasTextureChannel(SplatTexture.Channel.A)) {
-            prefix += "#define splatAFlag\n";
+            sb.append("#define splatAFlag\n");
         }
 
         // Normals
         if (terrainMaterial.hasNormalTextures()) {
-            prefix += "#define normalTextureFlag\n";
+            sb.append("#define normalTextureFlag\n");
 
             if (terrainMaterial.hasNormalChannel(SplatTexture.Channel.BASE)) {
-                prefix += "#define baseNormalFlag\n";
+                sb.append("#define baseNormalFlag\n");
             }
 
             if (terrainMaterial.hasNormalChannel(SplatTexture.Channel.R)) {
-                prefix += "#define splatRNormalFlag\n";
+                sb.append("#define splatRNormalFlag\n");
             }
 
             if (terrainMaterial.hasNormalChannel(SplatTexture.Channel.G)) {
-                prefix += "#define splatGNormalFlag\n";
+                sb.append("#define splatGNormalFlag\n");
             }
 
             if (terrainMaterial.hasNormalChannel(SplatTexture.Channel.B)) {
-                prefix += "#define splatBNormalFlag\n";
+                sb.append("#define splatBNormalFlag\n");
             }
 
             if (terrainMaterial.hasNormalChannel(SplatTexture.Channel.A)) {
-                prefix += "#define splatANormalFlag\n";
+                sb.append("#define splatANormalFlag\n");
             }
         }
-        return prefix;
+
+        final int heightTexCount = terrainMaterial.getHeightTextureCount();
+        for (int i = 0; i < heightTexCount; i++)
+            sb.append("#define diffuseHeightTextureFlag").append(i).append("\n");
+
+        final int slopeTexCount = terrainMaterial.getSlopeTextureCount();
+        for (int i = 0; i < slopeTexCount; i++)
+            sb.append("#define diffuseSlopeTextureFlag").append(i).append("\n");
+
+        return sb.toString();
     }
 }

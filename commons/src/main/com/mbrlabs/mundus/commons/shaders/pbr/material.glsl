@@ -115,6 +115,16 @@ vec4 triplanar(sampler2D diffuseTexture, vec3 triblend)
 uniform sampler2D u_diffuseTexture;
 #endif
 
+#ifdef diffuseHeightTextureFlag0
+uniform sampler2D u_diffuseHeightTexture0;
+#endif
+
+#ifdef diffuseSlopeTextureFlag0
+// Slope
+//uniform float u_minSlope;
+uniform sampler2D u_diffuseSlopeTexture0;
+#endif
+
 #ifdef splatFlag
 varying vec2 v_splatPosition;
 vec4 splat;
@@ -266,6 +276,14 @@ struct PBRSurfaceInfo
 #endif
 };
 
+float normalizeRange(float value, float minValue, float maxValue) {
+    float weight = max(minValue, value);
+    weight = min(maxValue, weight);
+    weight -= minValue;
+    weight /= maxValue - minValue; // Normalizes to 0.0-1.0 range
+    return weight;
+}
+
 vec4 getBaseColor()
 {
     // The albedo may be defined from a base texture or a flat color
@@ -290,6 +308,30 @@ vec4 getBaseColor()
 
 #ifdef diffuseTextureFlag
     vec4 baseColor = getColor(u_diffuseTexture, colorUv);
+
+    #ifdef diffuseHeightTextureFlag0
+    // Height blending
+    float minHeight = -150.0; // The world height blending begins
+    float maxHeight = 0.0; // The world height where blending is 1.0
+
+    float blend = normalizeRange(v_position.y, minHeight, maxHeight);
+    baseColor = mix(baseColor, texture2D(u_diffuseHeightTexture0, v_diffuseUV), blend);
+    #endif
+
+    #ifdef diffuseSlopeTextureFlag0
+    // Slope blending
+    float minSlope = 0.01f; // Higher == more slope texture visible
+    float maxSlope = 0.60; // lower == less slope texture visible
+
+    #ifdef tangentFlag
+    float slope = v_TBN[2].y;
+    #else
+    float slope = v_normal.y;
+    #endif
+
+    float slopeWeight = normalizeRange(slope, minSlope, maxSlope);
+    baseColor = mix(texture2D(u_diffuseSlopeTexture0, v_diffuseUV), baseColor, slopeWeight);
+    #endif
 
     #ifdef splatFlag
         splat = texture2D(u_texture_splat, v_splatPosition);
