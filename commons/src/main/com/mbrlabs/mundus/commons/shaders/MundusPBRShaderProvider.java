@@ -107,13 +107,9 @@ public class MundusPBRShaderProvider extends PBRShaderProvider {
             }
         }
 
-        final int heightTexCount = terrainMaterial.getHeightTextureCount();
-        for (int i = 0; i < heightTexCount; i++)
+        final int procBlendTextureCount = terrainMaterial.getProceduralBlendTextureCount();
+        for (int i = 0; i < procBlendTextureCount; i++)
             sb.append("#define diffuseHeightTextureFlag").append(i).append("\n");
-
-        final int slopeTexCount = terrainMaterial.getSlopeTextureCount();
-        for (int i = 0; i < slopeTexCount; i++)
-            sb.append("#define diffuseSlopeTextureFlag").append(i).append("\n");
 
         return sb.toString();
     }

@@ -16,7 +16,6 @@
 
 package com.mbrlabs.mundus.commons.terrain;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.mbrlabs.mundus.commons.terrain.attributes.TerrainAttribute;
@@ -37,14 +36,12 @@ public class TerrainMaterial extends TerrainAttributes {
     private SplatMap splatmap;
     private TerrainInfo terrain;
 
-    private final Array<HeightTexture> heightTextures;
-    private final Array<SlopeTexture> slopeTextures;
+    private final Array<ProceduralBlendTexture> proceduralBlendTextures;
 
     public TerrainMaterial() {
         textures = new HashMap<>(5, 1);
         normalTextures = new HashMap<>(5, 1);
-        heightTextures = new Array<>(5);
-        slopeTextures = new Array<>(5);
+        proceduralBlendTextures = new Array<>(5);
     }
 
     public SplatTexture getTexture(SplatTexture.Channel channel) {
@@ -55,28 +52,16 @@ public class TerrainMaterial extends TerrainAttributes {
         return normalTextures.get(channel);
     }
 
-    public HeightTexture getHeightTexture(int index) {
-        return heightTextures.get(index);
+    public ProceduralBlendTexture getProceduralBlendTexture(int index) {
+        return proceduralBlendTextures.get(index);
     }
 
-    public int getHeightTextureCount() {
-        return heightTextures.size;
+    public int getProceduralBlendTextureCount() {
+        return proceduralBlendTextures.size;
     }
 
-    public void addHeightTexture(HeightTexture heightTexture) {
-        heightTextures.add(heightTexture);
-    }
-
-    public SlopeTexture getSlopeTexture(int index) {
-        return slopeTextures.get(index);
-    }
-
-    public int getSlopeTextureCount() {
-        return slopeTextures.size;
-    }
-
-    public void addSlopeTexture(SlopeTexture slopeTexture) {
-        slopeTextures.add(slopeTexture);
+    public void addProceduralBlendTexture(ProceduralBlendTexture texture) {
+        proceduralBlendTextures.add(texture);
     }
 
     public void removeTexture(SplatTexture.Channel channel) {

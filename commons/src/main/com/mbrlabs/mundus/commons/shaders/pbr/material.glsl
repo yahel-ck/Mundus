@@ -309,28 +309,21 @@ vec4 getBaseColor()
 #ifdef diffuseTextureFlag
     vec4 baseColor = getColor(u_diffuseTexture, colorUv);
 
+    #ifdef tangentFlag
+    #define slope v_TBN[2].y
+    #else
+    #define slope v_normal.y
+    #endif
+
     #ifdef diffuseHeightTextureFlag0
     // Height blending
-    float minHeight = -150.0; // The world height blending begins
+    float minHeight = -100.0; // The world height blending begins
     float maxHeight = 0.0; // The world height where blending is 1.0
+    float minSlope = 0.01; // Higher == more slope texture visible
+    float maxSlope = 0.6; // lower == less slope texture visible
 
-    float blend = normalizeRange(v_position.y, minHeight, maxHeight);
+    float blend = normalizeRange(v_position.y, minHeight, maxHeight) * normalizeRange(slope, minSlope, maxSlope);
     baseColor = mix(baseColor, texture2D(u_diffuseHeightTexture0, v_diffuseUV), blend);
-    #endif
-
-    #ifdef diffuseSlopeTextureFlag0
-    // Slope blending
-    float minSlope = 0.01f; // Higher == more slope texture visible
-    float maxSlope = 0.60; // lower == less slope texture visible
-
-    #ifdef tangentFlag
-    float slope = v_TBN[2].y;
-    #else
-    float slope = v_normal.y;
-    #endif
-
-    float slopeWeight = normalizeRange(slope, minSlope, maxSlope);
-    baseColor = mix(texture2D(u_diffuseSlopeTexture0, v_diffuseUV), baseColor, slopeWeight);
     #endif
 
     #ifdef splatFlag
