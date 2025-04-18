@@ -8,8 +8,8 @@ import com.mbrlabs.mundus.commons.utils.PBRTextureProvider;
  * range of a mesh. Holds 3 textures (base color, normal, metallic roughness) and a float array of length 4 to store the
  * ranges. The normal and metallic-roughness textures should be optional.
  * <br>
- * The slope is actually the y component of the normal vector,
- * so higher slope = flat ground, lower slope = steep ground.
+ * The slope is actually the y component of the normal vector, so higher slope = flat ground, lower slope = steep
+ * ground.
  */
 public class HeightSlopeTexture extends ProceduralBlendTexture {
     protected static int MIN_HEIGHT_INDEX = 0;
@@ -25,6 +25,12 @@ public class HeightSlopeTexture extends ProceduralBlendTexture {
 
     public HeightSlopeTexture(float minHeight, float maxHeight, Texture texture) {
         this(minHeight, maxHeight, -1f, 1f, texture, null, null);
+    }
+
+    public HeightSlopeTexture(float minHeight, float maxHeight, float minSlope, float maxSlope,
+            PBRTextureProvider textures) {
+        this(minHeight, maxHeight, minSlope, maxSlope, textures.getTexture(), textures.getNormalTexture(),
+                textures.getMetallicRoughnessTexture());
     }
 
     public float getMinHeight() {
