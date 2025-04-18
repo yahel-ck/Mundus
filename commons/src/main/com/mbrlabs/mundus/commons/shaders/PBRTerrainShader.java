@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.mbrlabs.mundus.commons.terrain.ProceduralBlendTexture;
 import com.mbrlabs.mundus.commons.terrain.SplatTexture;
 import com.mbrlabs.mundus.commons.terrain.TerrainInfo;
 import com.mbrlabs.mundus.commons.terrain.TerrainMaterial;
@@ -38,6 +39,7 @@ public class PBRTerrainShader extends MundusPBRShader {
         private final static Array<Uniform> proceduralBlendParams = new Array<>(5);
         private final static Array<Uniform> proceduralBlendTextures = new Array<>(5);
         private final static Array<Uniform> proceduralBlendNormalTextures = new Array<>(5);
+        private final static Array<Uniform> proceduralBlendMetallicRoughnessValues = new Array<>(5);
 
         private static Uniform indexedUniform(final Array<Uniform> uniforms, final String aliasPrefix,
                 final int index) {
@@ -57,6 +59,11 @@ public class PBRTerrainShader extends MundusPBRShader {
 
         public static Uniform proceduralBlendNormalTexture(int index) {
             return indexedUniform(proceduralBlendNormalTextures, "u_proceduralBlendNormalTexture", index);
+        }
+
+        public static Uniform proceduralBlendMetallicRoughnessValues(int index) {
+            return indexedUniform(proceduralBlendMetallicRoughnessValues, "u_proceduralBlendMetallicRoughnessValues",
+                    index);
         }
     }
 
@@ -125,6 +132,7 @@ public class PBRTerrainShader extends MundusPBRShader {
         private final static Array<Setter> proceduralBlendParams = new Array<>(5);
         private final static Array<Setter> proceduralBlendTextures = new Array<>(5);
         private final static Array<Setter> proceduralBlendNormalTextures = new Array<>(5);
+        private final static Array<Setter> proceduralBlendMetallicRoughnessValues = new Array<>(5);
 
         public static Setter proceduralBlendParams(final int index) {
             for (int i = proceduralBlendParams.size; i <= index; i++) {
@@ -149,6 +157,14 @@ public class PBRTerrainShader extends MundusPBRShader {
         public static Setter proceduralBlendNormalTexture(final int index) {
             return indexedProceduralBlendTexture(proceduralBlendNormalTextures, PBRTextureProvider.TextureType.NORMAL,
                     index);
+        }
+
+        public static Setter proceduralBlendMetallicRoughnessValues(final int index) {
+            final Array<Setter> setters = proceduralBlendMetallicRoughnessValues;
+            for (int i = setters.size; i <= index; i++) {
+                setters.add(newProceduralBlendMetallicRoughnessValuesSetter(i));
+            }
+            return setters.get(index);
         }
 
         private static Setter newProceduralBlendTexureSetter(final PBRTextureProvider.TextureType type,
@@ -180,6 +196,21 @@ public class PBRTerrainShader extends MundusPBRShader {
                 }
             };
         }
+
+        private static Setter newProceduralBlendMetallicRoughnessValuesSetter(final int index) {
+            return new LocalSetter() {
+                @Override
+                public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                            TerrainMaterialAttribute.TerrainMaterial);
+                    TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
+
+                    final Vector2 metallicRoughness = material.getProceduralBlendTexture(index)
+                            .getMetallicRoughnessValues();
+                    shader.set(inputID, metallicRoughness);
+                }
+            };
+        }
     }
 
     public final int u_splatTexture;
@@ -197,6 +228,7 @@ public class PBRTerrainShader extends MundusPBRShader {
     public final int[] u_proceduralBlendParams;
     public final int[] u_proceduralBlendTextures;
     public final int[] u_proceduralBlendNormalTextures;
+    public final int[] u_proceduralBlendMetallicRoughnessValues;
 
     protected final long terrainMaterialMask;
 
@@ -211,15 +243,22 @@ public class PBRTerrainShader extends MundusPBRShader {
         u_proceduralBlendTextures = new int[terrainMaterial.getProceduralBlendTextureCount()];
         u_proceduralBlendNormalTextures = new int[u_proceduralBlendTextures.length];
         u_proceduralBlendParams = new int[u_proceduralBlendTextures.length];
+        u_proceduralBlendMetallicRoughnessValues = new int[u_proceduralBlendTextures.length];
         for (int i = 0; i < u_proceduralBlendTextures.length; i++) {
             u_proceduralBlendParams[i] = register(TerrainInputs.proceduralBlendParams(i),
                     TerrainSetters.proceduralBlendParams(i));
             u_proceduralBlendTextures[i] = register(TerrainInputs.proceduralBlendTexture(i),
                     TerrainSetters.proceduralBlendTexture(i));
 
-            if (terrainMaterial.getProceduralBlendTexture(i).getNormalTexture() != null) {
+            final ProceduralBlendTexture texture = terrainMaterial.getProceduralBlendTexture(i);
+            if (texture.getNormalTexture() != null) {
                 u_proceduralBlendNormalTextures[i] = register(TerrainInputs.proceduralBlendNormalTexture(i),
                         TerrainSetters.proceduralBlendNormalTexture(i));
+            }
+            if (texture.getMetallicRoughnessValues() != null) {
+                u_proceduralBlendMetallicRoughnessValues[i] = register(
+                        TerrainInputs.proceduralBlendMetallicRoughnessValues(i),
+                        TerrainSetters.proceduralBlendMetallicRoughnessValues(i));
             }
         }
 

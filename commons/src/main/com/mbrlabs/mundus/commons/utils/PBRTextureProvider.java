@@ -1,6 +1,7 @@
 package com.mbrlabs.mundus.commons.utils;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector2;
 
 public class PBRTextureProvider implements TextureProvider {
     public enum TextureType {
@@ -12,6 +13,10 @@ public class PBRTextureProvider implements TextureProvider {
     private Texture texture;
     private Texture normalTexture;
     private Texture metallicRoughnessTexture;
+
+    /** Alternative way to specify metallic and roughness values (as opposed to a Texture).
+     * X is metallic value, Y is roughness value. */
+    private Vector2 metallicRoughnessValues;
 
     public PBRTextureProvider(Texture texture, Texture normalTexture, Texture metallicRoughnessTexture) {
         this.texture = texture;
@@ -54,5 +59,13 @@ public class PBRTextureProvider implements TextureProvider {
         } else {
             throw new UnsupportedOperationException("No texture for type " + type);
         }
+    }
+
+    public Vector2 getMetallicRoughnessValues() {
+        return metallicRoughnessValues;
+    }
+
+    public void setMetallicRoughnessValues(Vector2 metallicRoughnessValues) {
+        this.metallicRoughnessValues = metallicRoughnessValues;
     }
 }

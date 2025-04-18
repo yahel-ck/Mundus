@@ -68,6 +68,22 @@ void main() {
     perceptualRoughness = mrSample.g * perceptualRoughness;
     metallic = mrSample.b * metallic;
 #endif
+
+    #ifdef proceduralBlendMetallicRoughnessValuesFlag0
+    metallic = metallic * (1.0 - proceduralBlendWeight0) + proceduralBlendWeight0 * proceduralBlendMetallicRoughnessValues0.x;
+    perceptualRoughness = perceptualRoughness * (1.0 - proceduralBlendWeight0) + proceduralBlendWeight0 * proceduralBlendMetallicRoughnessValues0.y;
+    #endif
+
+    #ifdef proceduralBlendMetallicRoughnessValuesFlag1
+    metallic = metallic * (1.0 - proceduralBlendWeight1) + proceduralBlendWeight1 * proceduralBlendMetallicRoughnessValues1.x;
+    perceptualRoughness = perceptualRoughness * (1.0 - proceduralBlendWeight1) + proceduralBlendWeight1 * proceduralBlendMetallicRoughnessValues1.y;
+    #endif
+
+    #ifdef proceduralBlendMetallicRoughnessValuesFlag2
+    metallic = metallic * (1.0 - proceduralBlendWeight2) + proceduralBlendWeight2 * proceduralBlendMetallicRoughnessValues2.x;
+    perceptualRoughness = perceptualRoughness * (1.0 - proceduralBlendWeight2) + proceduralBlendWeight2 * proceduralBlendMetallicRoughnessValues2.y;
+    #endif
+
     perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
     metallic = clamp(metallic, 0.0, 1.0);
     // Roughness is authored as perceptual roughness; as is convention,

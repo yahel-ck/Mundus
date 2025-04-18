@@ -121,6 +121,9 @@ uniform sampler2D u_proceduralBlendTexture0;
 #ifdef proceduralBlendNormalTextureFlag0
 uniform sampler2D u_proceduralBlendNormalTexture0;
 #endif
+#ifdef proceduralBlendMetallicRoughnessValuesFlag0
+uniform vec2 proceduralBlendMetallicRoughnessValues0;
+#endif
 float proceduralBlendWeight0;
 #endif
 
@@ -130,6 +133,9 @@ uniform sampler2D u_proceduralBlendTexture1;
 #ifdef proceduralBlendNormalTextureFlag1
 uniform sampler2D u_proceduralBlendNormalTexture1;
 #endif
+#ifdef proceduralBlendMetallicRoughnessValuesFlag1
+uniform vec2 proceduralBlendMetallicRoughnessValues1;
+#endif
 float proceduralBlendWeight1;
 #endif
 
@@ -138,6 +144,9 @@ uniform vec4 u_proceduralBlendParams2;
 uniform sampler2D u_proceduralBlendTexture2;
 #ifdef proceduralBlendNormalTextureFlag2
 uniform sampler2D u_proceduralBlendNormalTexture2;
+#endif
+#ifdef proceduralBlendMetallicRoughnessValuesFlag2
+uniform vec2 proceduralBlendMetallicRoughnessValues2;
 #endif
 float proceduralBlendWeight2;
 #endif
@@ -307,14 +316,14 @@ float rangeFalloff(float value, float minVal, float maxVal, float marginInverse)
 }
 
 #define heightRangeFalloffMarginInverse 0.08
-#define slopeRangeFalloffMarginInverse 0.9
+#define slopeRangeFalloffMarginInverse 5.0
 
 float calcHeightWeight(float value, float minVal, float maxVal) {
     return rangeFalloff(value, minVal, maxVal, heightRangeFalloffMarginInverse);
 }
 
 float calcSlopeWeight(float value, float minVal, float maxVal) {
-    return rangeParabola(value, minVal, maxVal);
+    return rangeFalloff(value, minVal, maxVal, slopeRangeFalloffMarginInverse);
 }
 #endif
 

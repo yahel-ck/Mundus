@@ -116,6 +116,8 @@ public class MundusPBRShaderProvider extends PBRShaderProvider {
                 sb.append("#define proceduralBlendNormalTextureFlag").append(i).append("\n");
             if (texture.getMetallicRoughnessTexture() != null)
                 sb.append("#define proceduralBlendMetallicRoughnessTextureFlag").append(i).append("\n");
+            if (texture.getMetallicRoughnessValues() != null)
+                sb.append("#define proceduralBlendMetallicRoughnessValuesFlag").append(i).append("\n");
         }
 
         return sb.toString();
