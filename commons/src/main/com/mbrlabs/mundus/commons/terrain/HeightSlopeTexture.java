@@ -7,6 +7,9 @@ import com.mbrlabs.mundus.commons.utils.PBRTextureProvider;
  * A PBRTextureProvider with a height and slope range. Used to render a PBR texture on the specified height and slope
  * range of a mesh. Holds 3 textures (base color, normal, metallic roughness) and a float array of length 4 to store the
  * ranges. The normal and metallic-roughness textures should be optional.
+ * <br>
+ * The slope is actually the y component of the normal vector,
+ * so higher slope = flat ground, lower slope = steep ground.
  */
 public class HeightSlopeTexture extends ProceduralBlendTexture {
     protected static int MIN_HEIGHT_INDEX = 0;

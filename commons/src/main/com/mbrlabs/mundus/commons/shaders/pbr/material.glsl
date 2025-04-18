@@ -116,13 +116,8 @@ uniform sampler2D u_diffuseTexture;
 #endif
 
 #ifdef proceduralBlendTextureFlag0
+uniform vec4 u_proceduralBlendParams0;
 uniform sampler2D u_proceduralBlendTexture0;
-#endif
-
-#ifdef diffuseSlopeTextureFlag0
-// Slope
-//uniform float u_minSlope;
-uniform sampler2D u_diffuseSlopeTexture0;
 #endif
 
 #ifdef splatFlag
@@ -320,13 +315,9 @@ vec4 getBaseColor()
     #endif
 
     #ifdef proceduralBlendTextureFlag0
-    float minHeight = -100.0; // The world height blending begins
-    float maxHeight = -50.0; // The world height where blending ends
-    float minSlope = 0.6; // Higher slope = flat ground, lower slope = steep ground
-    float maxSlope = 1.0;
-
-    float blend = rangeFalloff(v_position.y, minHeight, maxHeight) * rangeFalloff(slope, minSlope, maxSlope);
-    baseColor = mix(baseColor, getColor(u_proceduralBlendTexture0, colorUv), blend);
+    float proceduralBlendWeight0 = rangeFalloff(v_position.y, u_proceduralBlendParams0.x, u_proceduralBlendParams0.y) *
+            rangeFalloff(slope, u_proceduralBlendParams0.z, u_proceduralBlendParams0.w);
+    baseColor = mix(baseColor, getColor(u_proceduralBlendTexture0, colorUv), proceduralBlendWeight0);
     #endif
 
     #ifdef splatFlag
