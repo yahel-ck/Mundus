@@ -37,7 +37,7 @@ public class PBRTerrainShader extends MundusPBRShader {
 
         public static Uniform proceduralBlendTexture(int index) {
             for (int i = proceduralBlendTextures.size; i <= index; i++) {
-                proceduralBlendTextures.add(new Uniform("u_diffuseHeightTexture" + i));
+                proceduralBlendTextures.add(new Uniform("u_proceduralBlendTexture" + i));
             }
             return proceduralBlendTextures.get(index);
         }

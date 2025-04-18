@@ -115,8 +115,8 @@ vec4 triplanar(sampler2D diffuseTexture, vec3 triblend)
 uniform sampler2D u_diffuseTexture;
 #endif
 
-#ifdef diffuseHeightTextureFlag0
-uniform sampler2D u_diffuseHeightTexture0;
+#ifdef proceduralBlendTextureFlag0
+uniform sampler2D u_proceduralBlendTexture0;
 #endif
 
 #ifdef diffuseSlopeTextureFlag0
@@ -315,7 +315,7 @@ vec4 getBaseColor()
     #define slope v_normal.y
     #endif
 
-    #ifdef diffuseHeightTextureFlag0
+    #ifdef proceduralBlendTextureFlag0
     // Height blending
     float minHeight = -100.0; // The world height blending begins
     float maxHeight = 0.0; // The world height where blending is 1.0
@@ -323,7 +323,7 @@ vec4 getBaseColor()
     float maxSlope = 0.6; // lower == less slope texture visible
 
     float blend = normalizeRange(v_position.y, minHeight, maxHeight) * normalizeRange(slope, minSlope, maxSlope);
-    baseColor = mix(baseColor, texture2D(u_diffuseHeightTexture0, v_diffuseUV), blend);
+    baseColor = mix(baseColor, texture2D(u_proceduralBlendTexture0, v_diffuseUV), blend);
     #endif
 
     #ifdef splatFlag
