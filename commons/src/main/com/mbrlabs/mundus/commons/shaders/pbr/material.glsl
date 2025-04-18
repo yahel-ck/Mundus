@@ -276,12 +276,16 @@ struct PBRSurfaceInfo
 #endif
 };
 
-float normalizeRange(float value, float minValue, float maxValue) {
-    float weight = max(minValue, value);
-    weight = min(maxValue, weight);
-    weight -= minValue;
-    weight /= maxValue - minValue; // Normalizes to 0.0-1.0 range
-    return weight;
+#define rangeFalloffMarginInverse 2.0
+
+// Curve looks like this: /---------\ where the edges width is the margin
+// f(x) = ((b-a)/2 - |x-(a+b)/2|) / m
+float rangeFalloff(float value, float minVal, float maxVal) {
+    float center = (minVal + maxVal) * 0.5;
+    float halfWidth = (maxVal - minVal) * 0.5;
+    float dist = abs(value - center);
+    // return 1.0 - smoothstep(0.0, halfWidth, dist);
+    return clamp((halfWidth - dist) * rangeFalloffMarginInverse, 0.0, 1.0);
 }
 
 vec4 getBaseColor()
@@ -310,19 +314,18 @@ vec4 getBaseColor()
     vec4 baseColor = getColor(u_diffuseTexture, colorUv);
 
     #ifdef tangentFlag
-    #define slope v_TBN[2].y
+    #define slope abs(v_TBN[2].y)
     #else
-    #define slope v_normal.y
+    #define slope abs(v_normal.y)
     #endif
 
     #ifdef proceduralBlendTextureFlag0
-    // Height blending
-    float minHeight = -100.0; // The world height blending begins
-    float maxHeight = 0.0; // The world height where blending is 1.0
-    float minSlope = 0.01; // Higher == more slope texture visible
-    float maxSlope = 0.6; // lower == less slope texture visible
+    float minHeight = -200.0; // The world height blending begins
+    float maxHeight = 200.0; // The world height where blending ends
+    float minSlope = 0.6; // Higher slope = flat ground, lower slope = steep ground
+    float maxSlope = 1.0;
 
-    float blend = normalizeRange(v_position.y, minHeight, maxHeight) * normalizeRange(slope, minSlope, maxSlope);
+    float blend = rangeFalloff(v_position.y, minHeight, maxHeight) * rangeFalloff(slope, minSlope, maxSlope);
     baseColor = mix(baseColor, texture2D(u_proceduralBlendTexture0, v_diffuseUV), blend);
     #endif
 
