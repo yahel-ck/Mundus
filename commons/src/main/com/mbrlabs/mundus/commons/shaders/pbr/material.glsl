@@ -121,8 +121,25 @@ uniform sampler2D u_proceduralBlendTexture0;
 #ifdef proceduralBlendNormalTextureFlag0
 uniform sampler2D u_proceduralBlendNormalTexture0;
 #endif
-
 float proceduralBlendWeight0;
+#endif
+
+#ifdef proceduralBlendTextureFlag1
+uniform vec4 u_proceduralBlendParams1;
+uniform sampler2D u_proceduralBlendTexture1;
+#ifdef proceduralBlendNormalTextureFlag1
+uniform sampler2D u_proceduralBlendNormalTexture1;
+#endif
+float proceduralBlendWeight1;
+#endif
+
+#ifdef proceduralBlendTextureFlag2
+uniform vec4 u_proceduralBlendParams2;
+uniform sampler2D u_proceduralBlendTexture2;
+#ifdef proceduralBlendNormalTextureFlag2
+uniform sampler2D u_proceduralBlendNormalTexture2;
+#endif
+float proceduralBlendWeight2;
 #endif
 
 
@@ -277,17 +294,30 @@ struct PBRSurfaceInfo
 #endif
 };
 
-#define rangeFalloffMarginInverse 2.0
 
+#ifdef proceduralBlendTextureFlag0
 // Curve looks like this: /---------\ where the edges width is the margin
-// f(x) = ((b-a)/2 - |x-(a+b)/2|) / m
-float rangeFalloff(float value, float minVal, float maxVal) {
+// f(x) = ((b-a)/2 - abs(x-(a+b)/2)) / m
+float rangeFalloff(float value, float minVal, float maxVal, float marginInverse) {
     float center = (minVal + maxVal) * 0.5;
     float halfWidth = (maxVal - minVal) * 0.5;
     float dist = abs(value - center);
     // return 1.0 - smoothstep(0.0, halfWidth, dist);
-    return clamp((halfWidth - dist) * rangeFalloffMarginInverse, 0.0, 1.0);
+    return clamp((halfWidth - dist) * marginInverse, 0.0, 1.0);
 }
+
+#define heightRangeFalloffMarginInverse 0.08
+#define slopeRangeFalloffMarginInverse 0.9
+
+float calcHeightWeight(float value, float minVal, float maxVal) {
+    return rangeFalloff(value, minVal, maxVal, heightRangeFalloffMarginInverse);
+}
+
+float calcSlopeWeight(float value, float minVal, float maxVal) {
+    return rangeParabola(value, minVal, maxVal);
+}
+#endif
+
 
 vec4 getBaseColor()
 {
@@ -315,15 +345,27 @@ vec4 getBaseColor()
     vec4 baseColor = getColor(u_diffuseTexture, colorUv);
 
     #ifdef tangentFlag
-    #define slope abs(v_TBN[2].y)
+    #define slope v_TBN[2].y
     #else
-    #define slope abs(v_normal.y)
+    #define slope v_normal.y
     #endif
 
     #ifdef proceduralBlendTextureFlag0
-    proceduralBlendWeight0 = rangeFalloff(v_position.y, u_proceduralBlendParams0.x, u_proceduralBlendParams0.y) *
-            rangeFalloff(slope, u_proceduralBlendParams0.z, u_proceduralBlendParams0.w);
+    proceduralBlendWeight0 = calcHeightWeight(v_position.y, u_proceduralBlendParams0.x, u_proceduralBlendParams0.y) *
+            calcSlopeWeight(slope, u_proceduralBlendParams0.z, u_proceduralBlendParams0.w);
     baseColor = mix(baseColor, getColor(u_proceduralBlendTexture0, colorUv), proceduralBlendWeight0);
+    #endif
+
+    #ifdef proceduralBlendTextureFlag1
+    proceduralBlendWeight1 = calcHeightWeight(v_position.y, u_proceduralBlendParams1.x, u_proceduralBlendParams1.y) *
+            calcSlopeWeight(slope, u_proceduralBlendParams1.z, u_proceduralBlendParams1.w);
+    baseColor = mix(baseColor, getColor(u_proceduralBlendTexture1, colorUv), proceduralBlendWeight1);
+    #endif
+
+    #ifdef proceduralBlendTextureFlag2
+    proceduralBlendWeight2 = calcHeightWeight(v_position.y, u_proceduralBlendParams2.x, u_proceduralBlendParams2.y) *
+            calcSlopeWeight(slope, u_proceduralBlendParams2.z, u_proceduralBlendParams2.w);
+    baseColor = mix(baseColor, getColor(u_proceduralBlendTexture2, colorUv), proceduralBlendWeight2);
     #endif
 
     #ifdef splatFlag
@@ -376,6 +418,12 @@ vec3 getNormal()
 
     #ifdef proceduralBlendNormalTextureFlag0
     n = n * (1.0 - proceduralBlendWeight0) + getColor(u_proceduralBlendNormalTexture0, colorUv).rgb * proceduralBlendWeight0;
+    #endif
+    #ifdef proceduralBlendNormalTextureFlag1
+    n = n * (1.0 - proceduralBlendWeight1) + getColor(u_proceduralBlendNormalTexture1, colorUv).rgb * proceduralBlendWeight1;
+    #endif
+    #ifdef proceduralBlendNormalTextureFlag2
+    n = n * (1.0 - proceduralBlendWeight2) + getColor(u_proceduralBlendNormalTexture2, colorUv).rgb * proceduralBlendWeight2;
     #endif
 
     #ifdef splatFlag
