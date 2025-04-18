@@ -320,13 +320,13 @@ vec4 getBaseColor()
     #endif
 
     #ifdef proceduralBlendTextureFlag0
-    float minHeight = -200.0; // The world height blending begins
-    float maxHeight = 200.0; // The world height where blending ends
+    float minHeight = -100.0; // The world height blending begins
+    float maxHeight = -50.0; // The world height where blending ends
     float minSlope = 0.6; // Higher slope = flat ground, lower slope = steep ground
     float maxSlope = 1.0;
 
     float blend = rangeFalloff(v_position.y, minHeight, maxHeight) * rangeFalloff(slope, minSlope, maxSlope);
-    baseColor = mix(baseColor, texture2D(u_proceduralBlendTexture0, v_diffuseUV), blend);
+    baseColor = mix(baseColor, getColor(u_proceduralBlendTexture0, colorUv), blend);
     #endif
 
     #ifdef splatFlag
