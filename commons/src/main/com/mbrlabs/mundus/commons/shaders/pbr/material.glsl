@@ -118,7 +118,13 @@ uniform sampler2D u_diffuseTexture;
 #ifdef proceduralBlendTextureFlag0
 uniform vec4 u_proceduralBlendParams0;
 uniform sampler2D u_proceduralBlendTexture0;
+#ifdef proceduralBlendNormalTextureFlag0
+uniform sampler2D u_proceduralBlendNormalTexture0;
 #endif
+
+float proceduralBlendWeight0;
+#endif
+
 
 #ifdef splatFlag
 varying vec2 v_splatPosition;
@@ -315,7 +321,7 @@ vec4 getBaseColor()
     #endif
 
     #ifdef proceduralBlendTextureFlag0
-    float proceduralBlendWeight0 = rangeFalloff(v_position.y, u_proceduralBlendParams0.x, u_proceduralBlendParams0.y) *
+    proceduralBlendWeight0 = rangeFalloff(v_position.y, u_proceduralBlendParams0.x, u_proceduralBlendParams0.y) *
             rangeFalloff(slope, u_proceduralBlendParams0.z, u_proceduralBlendParams0.w);
     baseColor = mix(baseColor, getColor(u_proceduralBlendTexture0, colorUv), proceduralBlendWeight0);
     #endif
@@ -367,6 +373,10 @@ vec3 getNormal()
     #endif
 
     vec3 n = getColor(u_normalTexture, colorUv).rgb;
+
+    #ifdef proceduralBlendNormalTextureFlag0
+    n = n * (1.0 - proceduralBlendWeight0) + getColor(u_proceduralBlendNormalTexture0, colorUv).rgb * proceduralBlendWeight0;
+    #endif
 
     #ifdef splatFlag
     vec3 splatNormal;

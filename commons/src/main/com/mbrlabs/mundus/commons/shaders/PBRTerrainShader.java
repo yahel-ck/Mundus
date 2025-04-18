@@ -11,6 +11,7 @@ import com.mbrlabs.mundus.commons.terrain.SplatTexture;
 import com.mbrlabs.mundus.commons.terrain.TerrainInfo;
 import com.mbrlabs.mundus.commons.terrain.TerrainMaterial;
 import com.mbrlabs.mundus.commons.terrain.attributes.TerrainMaterialAttribute;
+import com.mbrlabs.mundus.commons.utils.PBRTextureProvider;
 
 /**
  * @author JamesTKhan
@@ -19,6 +20,7 @@ import com.mbrlabs.mundus.commons.terrain.attributes.TerrainMaterialAttribute;
 public class PBRTerrainShader extends MundusPBRShader {
     public static final TextureDescriptor<Texture> textureDescription = new TextureDescriptor<>();
     private final static Vector2 v2 = new Vector2();
+
     public static class TerrainInputs {
         public final static Uniform terrainSize = new Uniform("u_terrainSize");
 
@@ -33,30 +35,37 @@ public class PBRTerrainShader extends MundusPBRShader {
         public final static Uniform splatBNormal = new Uniform("u_texture_b_normal");
         public final static Uniform splatANormal = new Uniform("u_texture_a_normal");
 
-        private final static Array<Uniform> proceduralBlendTextures = new Array<>(5);
         private final static Array<Uniform> proceduralBlendParams = new Array<>(5);
+        private final static Array<Uniform> proceduralBlendTextures = new Array<>(5);
+        private final static Array<Uniform> proceduralBlendNormalTextures = new Array<>(5);
 
-        private static Uniform indexedUniform(final Array<Uniform> uniforms, final String aliasPrefix, final int index) {
+        private static Uniform indexedUniform(final Array<Uniform> uniforms, final String aliasPrefix,
+                final int index) {
             for (int i = uniforms.size; i <= index; i++) {
                 uniforms.add(new Uniform(aliasPrefix + i));
             }
             return uniforms.get(index);
         }
 
+        public static Uniform proceduralBlendParams(int index) {
+            return indexedUniform(proceduralBlendParams, "u_proceduralBlendParams", index);
+        }
+
         public static Uniform proceduralBlendTexture(int index) {
             return indexedUniform(proceduralBlendTextures, "u_proceduralBlendTexture", index);
         }
 
-        public static Uniform proceduralBlendParams(int index) {
-            return indexedUniform(proceduralBlendParams, "u_proceduralBlendParams", index);
+        public static Uniform proceduralBlendNormalTexture(int index) {
+            return indexedUniform(proceduralBlendNormalTextures, "u_proceduralBlendNormalTexture", index);
         }
     }
 
     public static class TerrainSetters {
         public final static Setter terrainSize = new LocalSetter() {
             @Override
-            public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                        TerrainMaterialAttribute.TerrainMaterial);
                 final TerrainInfo terrainInfo = terrainMaterialAttribute.terrainMaterial.getTerrain();
                 shader.set(inputID, v2.set(terrainInfo.getWidth(), terrainInfo.getDepth()));
             }
@@ -76,11 +85,11 @@ public class PBRTerrainShader extends MundusPBRShader {
             return new LocalSetter() {
                 @Override
                 public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                            TerrainMaterialAttribute.TerrainMaterial);
                     TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
                     textureDescription.texture = material.getTexture(channel).getTexture();
-                    final int unit = shader.context.textureBinder
-                            .bind(textureDescription);
+                    final int unit = shader.context.textureBinder.bind(textureDescription);
                     shader.set(inputID, unit);
                 }
             };
@@ -90,11 +99,11 @@ public class PBRTerrainShader extends MundusPBRShader {
             return new LocalSetter() {
                 @Override
                 public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                            TerrainMaterialAttribute.TerrainMaterial);
                     TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
                     textureDescription.texture = material.getNormalTexture(channel).getTexture();
-                    final int unit = shader.context.textureBinder
-                            .bind(textureDescription);
+                    final int unit = shader.context.textureBinder.bind(textureDescription);
                     shader.set(inputID, unit);
                 }
             };
@@ -103,25 +112,19 @@ public class PBRTerrainShader extends MundusPBRShader {
         public static Setter splatTexture = new LocalSetter() {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+                TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                        TerrainMaterialAttribute.TerrainMaterial);
                 TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
 
                 textureDescription.texture = material.getSplatmap().getTexture();
-                final int unit = shader.context.textureBinder
-                        .bind(textureDescription);
+                final int unit = shader.context.textureBinder.bind(textureDescription);
                 shader.set(inputID, unit);
             }
         };
 
-        private final static Array<Setter> proceduralBlendTextures = new Array<>(5);
         private final static Array<Setter> proceduralBlendParams = new Array<>(5);
-
-        public static Setter proceduralBlendTexture(final int index) {
-            for (int i = proceduralBlendTextures.size; i <= index; i++) {
-                proceduralBlendTextures.add(newProceduralBlendTexureSetter(i));
-            }
-            return proceduralBlendTextures.get(index);
-        }
+        private final static Array<Setter> proceduralBlendTextures = new Array<>(5);
+        private final static Array<Setter> proceduralBlendNormalTextures = new Array<>(5);
 
         public static Setter proceduralBlendParams(final int index) {
             for (int i = proceduralBlendParams.size; i <= index; i++) {
@@ -130,16 +133,35 @@ public class PBRTerrainShader extends MundusPBRShader {
             return proceduralBlendParams.get(index);
         }
 
-        private static Setter newProceduralBlendTexureSetter(final int index) {
+        private static Setter indexedProceduralBlendTexture(final Array<Setter> setters,
+                final PBRTextureProvider.TextureType type, final int index) {
+            for (int i = setters.size; i <= index; i++) {
+                setters.add(newProceduralBlendTexureSetter(type, i));
+            }
+            return setters.get(index);
+        }
+
+        public static Setter proceduralBlendTexture(final int index) {
+            return indexedProceduralBlendTexture(proceduralBlendTextures, PBRTextureProvider.TextureType.BASE_COLOR,
+                    index);
+        }
+
+        public static Setter proceduralBlendNormalTexture(final int index) {
+            return indexedProceduralBlendTexture(proceduralBlendNormalTextures, PBRTextureProvider.TextureType.NORMAL,
+                    index);
+        }
+
+        private static Setter newProceduralBlendTexureSetter(final PBRTextureProvider.TextureType type,
+                final int index) {
             return new LocalSetter() {
                 @Override
                 public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                            TerrainMaterialAttribute.TerrainMaterial);
                     TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
 
-                    textureDescription.texture = material.getProceduralBlendTexture(index).getTexture();
-                    final int unit = shader.context.textureBinder
-                            .bind(textureDescription);
+                    textureDescription.texture = material.getProceduralBlendTexture(index).getTexture(type);
+                    final int unit = shader.context.textureBinder.bind(textureDescription);
                     shader.set(inputID, unit);
                 }
             };
@@ -149,7 +171,8 @@ public class PBRTerrainShader extends MundusPBRShader {
             return new LocalSetter() {
                 @Override
                 public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(TerrainMaterialAttribute.TerrainMaterial);
+                    TerrainMaterialAttribute terrainMaterialAttribute = (TerrainMaterialAttribute) combinedAttributes.get(
+                            TerrainMaterialAttribute.TerrainMaterial);
                     TerrainMaterial material = terrainMaterialAttribute.terrainMaterial;
 
                     final float[] blendParams = material.getProceduralBlendTexture(index).getBlendParams();
@@ -171,11 +194,11 @@ public class PBRTerrainShader extends MundusPBRShader {
     public final int u_splatANormal;
     public final int u_terrainSize;
 
-    public final int[] u_proceduralBlendTextures;
     public final int[] u_proceduralBlendParams;
+    public final int[] u_proceduralBlendTextures;
+    public final int[] u_proceduralBlendNormalTextures;
 
     protected final long terrainMaterialMask;
-
 
     public PBRTerrainShader(Renderable renderable, Config config, String prefix) {
         super(renderable, config, prefix);
@@ -186,10 +209,18 @@ public class PBRTerrainShader extends MundusPBRShader {
         u_terrainSize = register(TerrainInputs.terrainSize, TerrainSetters.terrainSize);
 
         u_proceduralBlendTextures = new int[terrainMaterial.getProceduralBlendTextureCount()];
+        u_proceduralBlendNormalTextures = new int[u_proceduralBlendTextures.length];
         u_proceduralBlendParams = new int[u_proceduralBlendTextures.length];
         for (int i = 0; i < u_proceduralBlendTextures.length; i++) {
-            u_proceduralBlendParams[i] = register(TerrainInputs.proceduralBlendParams(i), TerrainSetters.proceduralBlendParams(i));
-            u_proceduralBlendTextures[i] = register(TerrainInputs.proceduralBlendTexture(i), TerrainSetters.proceduralBlendTexture(i));
+            u_proceduralBlendParams[i] = register(TerrainInputs.proceduralBlendParams(i),
+                    TerrainSetters.proceduralBlendParams(i));
+            u_proceduralBlendTextures[i] = register(TerrainInputs.proceduralBlendTexture(i),
+                    TerrainSetters.proceduralBlendTexture(i));
+
+            if (terrainMaterial.getProceduralBlendTexture(i).getNormalTexture() != null) {
+                u_proceduralBlendNormalTextures[i] = register(TerrainInputs.proceduralBlendNormalTexture(i),
+                        TerrainSetters.proceduralBlendNormalTexture(i));
+            }
         }
 
         u_splatTexture = register(TerrainInputs.splatTexture, TerrainSetters.splatTexture);
@@ -216,7 +247,8 @@ public class PBRTerrainShader extends MundusPBRShader {
     }
 
     private static TerrainMaterial getTerrainMaterial(Renderable renderable) {
-        TerrainMaterialAttribute attr = renderable.material.get(TerrainMaterialAttribute.class, TerrainMaterialAttribute.TerrainMaterial);
+        TerrainMaterialAttribute attr = renderable.material.get(TerrainMaterialAttribute.class,
+                TerrainMaterialAttribute.TerrainMaterial);
         if (attr != null)
             return attr.terrainMaterial;
 

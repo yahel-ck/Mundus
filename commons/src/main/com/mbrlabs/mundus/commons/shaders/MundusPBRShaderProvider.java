@@ -3,6 +3,7 @@ package com.mbrlabs.mundus.commons.shaders;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
+import com.mbrlabs.mundus.commons.terrain.ProceduralBlendTexture;
 import com.mbrlabs.mundus.commons.terrain.SplatTexture;
 import com.mbrlabs.mundus.commons.terrain.TerrainMaterial;
 import com.mbrlabs.mundus.commons.terrain.attributes.TerrainMaterialAttribute;
@@ -108,8 +109,14 @@ public class MundusPBRShaderProvider extends PBRShaderProvider {
         }
 
         final int procBlendTextureCount = terrainMaterial.getProceduralBlendTextureCount();
-        for (int i = 0; i < procBlendTextureCount; i++)
+        for (int i = 0; i < procBlendTextureCount; i++) {
+            final ProceduralBlendTexture texture = terrainMaterial.getProceduralBlendTexture(i);
             sb.append("#define proceduralBlendTextureFlag").append(i).append("\n");
+            if (texture.getNormalTexture() != null)
+                sb.append("#define proceduralBlendNormalTextureFlag").append(i).append("\n");
+            if (texture.getMetallicRoughnessTexture() != null)
+                sb.append("#define proceduralBlendMetallicRoughnessTextureFlag").append(i).append("\n");
+        }
 
         return sb.toString();
     }
