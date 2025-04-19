@@ -55,7 +55,9 @@ void main() {
 void main() {
     if ( v_clipDistance < 0.0 )
         discard;
-	
+
+	vec4 baseColor = getBaseColor();
+
     // Metallic and Roughness material properties are packed together
     // In glTF, these factors can be specified by fixed scalar values
     // or from a metallic-roughness map
@@ -89,8 +91,6 @@ void main() {
     // Roughness is authored as perceptual roughness; as is convention,
     // convert to material roughness by squaring the perceptual roughness [2].
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
-
-    vec4 baseColor = getBaseColor();
 
 #ifdef iorFlag
     vec3 f0 = vec3(pow(( u_ior - 1.0) /  (u_ior + 1.0), 2.0));
