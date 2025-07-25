@@ -188,6 +188,121 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
     }
 
     /**
+     * Adjust average normals of vertices along the edge considering the faces of the neighbor terrain. Modifies the
+     * normals of both this and neighbor. Assumes all current normals are normalized.
+     *
+     * @param neighbor
+     *         The neighbor terrain.
+     * @param up
+     *         true if the neighbor is above this, false if the neighbor is below this.
+     */
+    public void updateNeighborVertical(BaseTerrain neighbor, boolean up) {
+        if (up) {
+            assert neighbor.vertexResolution == vertexResolution;
+
+            // Start index is Z*vertexResolution
+            // Our Z is vertexResolution-1 (upper edge, last row)
+            final int ourStartIndex = (vertexResolution - 1) * vertexResolution;
+            // Neighbor Z is 0 (lower edge, first row), so start index is 0
+
+            for (int x = 0; x < vertexResolution; x++) {
+                combineNormalsWithNeighbor(neighbor, ourStartIndex + x, x);
+            }
+        } else {
+            neighbor.updateNeighborVertical(this, true);
+        }
+    }
+
+    /**
+     * Adjust average normals of vertices along the edge considering the faces of the neighbor terrain. Modifies the
+     * normals of both this and neighbor. Assumes all current normals are normalized.
+     *
+     * @param neighbor
+     *         The neighbor terrain.
+     * @param right
+     *         true if the neighbor is to the right of this, false if the neighbor is to the left of this.
+     */
+    public void updateNeighborHorizontal(BaseTerrain neighbor, boolean right) {
+        if (right) {
+            assert neighbor.vertexResolution == vertexResolution;
+
+            final int ourX = vertexResolution - 1; // Right edge, last column
+            // Neighbor's column is x=0 (left edge, first column)
+
+            final int vertCount = vertexResolution * vertexResolution;
+            for (int i = 0; i < vertCount; i += vertexResolution) {
+                combineNormalsWithNeighbor(neighbor, i + ourX, i);
+            }
+        } else {
+            neighbor.updateNeighborHorizontal(this, true);
+        }
+    }
+
+    /**
+     * Adjust average normals of vertices along the edge considering the faces of the neighbor terrain. In the case of
+     * diagonal neighbors, the edge is just one vertex (the corner). Modifies the normals of both this and neighbor.
+     * Assumes all current normals are normalized, and that vertexResolution is the same on both this and neighbor.
+     *
+     * @param neighbor
+     *         The neighbor terrain.
+     * @param up
+     *         true if the neighbor is above this, false if the neighbor is below this.
+     * @param right
+     *         true if the neighbor is to the right of this, false if the neighbor is to the left of this.
+     */
+    public void updateNeighborDiagonal(BaseTerrain neighbor, boolean up, boolean right) {
+        assert neighbor.vertexResolution == vertexResolution;
+
+        final int ourX, nbrX, ourZ, nbrZ;
+
+        if (up) {
+            ourZ = vertexResolution - 1;
+            nbrZ = 0;
+        } else {
+            ourZ = 0;
+            nbrZ = vertexResolution - 1;
+        }
+
+        if (right) {
+            ourX = vertexResolution - 1;
+            nbrX = 0;
+        } else {
+            ourX = 0;
+            nbrX = vertexResolution - 1;
+        }
+
+        final int ourIndex = ourZ * vertexResolution + ourX;
+        final int nbrIndex = nbrZ * vertexResolution + nbrX;
+        combineNormalsWithNeighbor(neighbor, ourIndex, nbrIndex);
+    }
+
+    /**
+     * Calculate the average normal of this and neighbor at the specified indices, and set both normals to the new
+     * average normal. Used for tiling terrain objects to get correct normals along the edge. `ourVertIndex` and
+     * `nbrVertIndex` should point to the same vertex position on this and the neighbor respectively, but they could
+     * point to any vertex position.
+     *
+     * @param neighbor
+     *         The neighbor terrain object of this (in any direction).
+     * @param ourVertIndex
+     *         The index of a vertex in this. Should be on the edge between this and the neighbor.
+     * @param nbrVertIndex
+     *         The index of vertex in the neighbor. Should be the overlapping vertex of `ourVertIndex`.
+     */
+    private void combineNormalsWithNeighbor(BaseTerrain neighbor, int ourVertIndex, int nbrVertIndex) {
+        final Vector3 normal = tmp;
+        final int ourStart = ourVertIndex * stride + norPos;
+        final int nbrStart = nbrVertIndex * neighbor.stride + neighbor.norPos;
+
+        normal.set(vertices[ourStart] + neighbor.vertices[nbrStart],
+                vertices[ourStart + 1] + neighbor.vertices[nbrStart + 1],
+                vertices[ourStart + 2] + neighbor.vertices[nbrStart + 2]).scl(0.5f);
+
+        setVertexNormal(ourVertIndex, normal);
+        neighbor.setVertexNormal(nbrVertIndex, normal);
+    }
+
+    /**
      * Retrieve the vertex x,y,z position from the vertices array for the given vertex index.
      */
     private void getVertexPos(Vector3 out, int index) {
@@ -203,6 +318,14 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
         vertices[start + norPos] = normal.x;
         vertices[start + norPos + 1] = normal.y;
         vertices[start + norPos + 2] = normal.z;
+    }
+
+    /**
+     * Retrieve the vertex x,y,z normal from the vertices array for the given vertex index.
+     */
+    private void getVertexNormal(int vertexIndex, Vector3 out) {
+        int start = vertexIndex * stride + norPos;
+        out.set(vertices[start], vertices[start + 1], vertices[start + 2]);
     }
 
     /**
