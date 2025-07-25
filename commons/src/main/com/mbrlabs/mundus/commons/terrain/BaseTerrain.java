@@ -232,6 +232,8 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
             for (int x = 0; x < vertexResolution; x++) {
                 combineNormalsWithNeighbor(neighbor, ourStartIndex + x, x);
             }
+
+            updateTangents();
         } else {
             neighbor.updateNeighborVertical(this, true);
         }
@@ -257,6 +259,8 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
             for (int i = 0; i < vertCount; i += vertexResolution) {
                 combineNormalsWithNeighbor(neighbor, i + ourX, i);
             }
+
+            updateTangents();
         } else {
             neighbor.updateNeighborHorizontal(this, true);
         }
@@ -298,6 +302,8 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
         final int ourIndex = ourZ * vertexResolution + ourX;
         final int nbrIndex = nbrZ * vertexResolution + nbrX;
         combineNormalsWithNeighbor(neighbor, ourIndex, nbrIndex);
+
+        updateTangents();
     }
 
     /**
@@ -673,14 +679,18 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
 
     public void update() {
         buildVertices();
+        updateTangents();
+    }
 
+    public void updateTangents() {
         VertexAttribute normalMapUVs = null;
         for (VertexAttribute a : attribs) {
             if (a.usage == VertexAttributes.Usage.TextureCoordinates) {
                 normalMapUVs = a;
             }
         }
-        // Get tangents added to terrains vertices array for normal mapping
+
+        // Get tangents added to terrain's vertices array for normal mapping
         MeshTangentSpaceGenerator.computeTangentSpace(vertices, indices, attribs, false, true, normalMapUVs);
 
         mesh.setVertices(vertices);
