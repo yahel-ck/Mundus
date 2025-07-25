@@ -193,6 +193,30 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
      *
      * @param neighbor
      *         The neighbor terrain.
+     * @param dx
+     *         X position of the neighbor relative to this, in terrain width units (should be either -1, 0 or 1).
+     * @param dz
+     *         Z position of the neighbor relative to this, in terrain depth units (should be either -1, 0 or 1).
+     */
+    public void updateNeighbor(BaseTerrain neighbor, int dx, int dz) {
+        assert (dx >= -1 && dx <= 1) && (dz >= -1 && dz <= 1); // Neighbor is not adjacent
+        assert !(dx == 0 && dz == 0); // Neighbor position is our position
+
+        if (dx != 0 && dz != 0) {
+            updateNeighborDiagonal(neighbor, dz > 0, dx > 0);
+        } else if (dx != 0) {
+            updateNeighborHorizontal(neighbor, dx > 0);
+        } else {
+            updateNeighborVertical(neighbor, dz > 0);
+        }
+    }
+
+    /**
+     * Adjust average normals of vertices along the edge considering the faces of the neighbor terrain. Modifies the
+     * normals of both this and neighbor. Assumes all current normals are normalized.
+     *
+     * @param neighbor
+     *         The neighbor terrain.
      * @param up
      *         true if the neighbor is above this, false if the neighbor is below this.
      */
