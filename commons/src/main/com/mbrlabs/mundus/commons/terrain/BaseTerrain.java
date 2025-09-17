@@ -197,17 +197,21 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
      *         X position of the neighbor relative to this, in terrain width units (should be either -1, 0 or 1).
      * @param dz
      *         Z position of the neighbor relative to this, in terrain depth units (should be either -1, 0 or 1).
+     * @param updateTangents
+     *         Whether to update tangents after adjusting the normals.
+     *         Should be true unless batch updating chunk neighbors, in which case `updateTangents()` should be called
+     *         manually after updating all neighbors.
      */
-    public void updateNeighbor(BaseTerrain neighbor, int dx, int dz) {
+    public void updateNeighbor(BaseTerrain neighbor, int dx, int dz, boolean updateTangents) {
         assert (dx >= -1 && dx <= 1) && (dz >= -1 && dz <= 1); // Neighbor is not adjacent
         assert !(dx == 0 && dz == 0); // Neighbor position is our position
 
         if (dx != 0 && dz != 0) {
-            updateNeighborDiagonal(neighbor, dz > 0, dx > 0);
+            updateNeighborDiagonal(neighbor, dz > 0, dx > 0, updateTangents);
         } else if (dx != 0) {
-            updateNeighborHorizontal(neighbor, dx > 0);
+            updateNeighborHorizontal(neighbor, dx > 0, updateTangents);
         } else {
-            updateNeighborVertical(neighbor, dz > 0);
+            updateNeighborVertical(neighbor, dz > 0, updateTangents);
         }
     }
 
@@ -219,8 +223,12 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
      *         The neighbor terrain.
      * @param up
      *         true if the neighbor is above this, false if the neighbor is below this.
+     * @param updateTangents
+     *         Whether to update tangents after adjusting the normals.
+     *         Should be true unless batch updating chunk neighbors, in which case `updateTangents()` should be called
+     *         manually after updating all neighbors.
      */
-    public void updateNeighborVertical(BaseTerrain neighbor, boolean up) {
+    public void updateNeighborVertical(BaseTerrain neighbor, boolean up, boolean updateTangents) {
         if (up) {
             assert neighbor.vertexResolution == vertexResolution;
 
@@ -233,9 +241,9 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
                 combineNormalsWithNeighbor(neighbor, ourStartIndex + x, x);
             }
 
-            updateTangents();
+            if (updateTangents) updateTangents();
         } else {
-            neighbor.updateNeighborVertical(this, true);
+            neighbor.updateNeighborVertical(this, true, updateTangents);
         }
     }
 
@@ -247,8 +255,12 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
      *         The neighbor terrain.
      * @param right
      *         true if the neighbor is to the right of this, false if the neighbor is to the left of this.
+     * @param updateTangents
+     *         Whether to update tangents after adjusting the normals.
+     *         Should be true unless batch updating chunk neighbors, in which case `updateTangents()` should be called
+     *         manually after updating all neighbors.
      */
-    public void updateNeighborHorizontal(BaseTerrain neighbor, boolean right) {
+    public void updateNeighborHorizontal(BaseTerrain neighbor, boolean right, boolean updateTangents) {
         if (right) {
             assert neighbor.vertexResolution == vertexResolution;
 
@@ -260,9 +272,9 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
                 combineNormalsWithNeighbor(neighbor, i + ourX, i);
             }
 
-            updateTangents();
+            if (updateTangents) updateTangents();
         } else {
-            neighbor.updateNeighborHorizontal(this, true);
+            neighbor.updateNeighborHorizontal(this, true, updateTangents);
         }
     }
 
@@ -277,8 +289,12 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
      *         true if the neighbor is above this, false if the neighbor is below this.
      * @param right
      *         true if the neighbor is to the right of this, false if the neighbor is to the left of this.
+     * @param updateTangents
+     *         Whether to update tangents after adjusting the normals.
+     *         Should be true unless batch updating chunk neighbors, in which case `updateTangents()` should be called
+     *         manually after updating all neighbors.
      */
-    public void updateNeighborDiagonal(BaseTerrain neighbor, boolean up, boolean right) {
+    public void updateNeighborDiagonal(BaseTerrain neighbor, boolean up, boolean right, boolean updateTangents) {
         assert neighbor.vertexResolution == vertexResolution;
 
         final int ourX, nbrX, ourZ, nbrZ;
@@ -303,7 +319,7 @@ public abstract class BaseTerrain implements TerrainInfo, Disposable {
         final int nbrIndex = nbrZ * vertexResolution + nbrX;
         combineNormalsWithNeighbor(neighbor, ourIndex, nbrIndex);
 
-        updateTangents();
+        if (updateTangents) updateTangents();
     }
 
     /**
