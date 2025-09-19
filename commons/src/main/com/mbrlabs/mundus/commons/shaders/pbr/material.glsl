@@ -315,8 +315,8 @@ float rangeFalloff(float value, float minVal, float maxVal, float marginInverse)
     return clamp((halfWidth - dist) * marginInverse, 0.0, 1.0);
 }
 
-#define heightRangeFalloffMarginInverse 0.08
-#define slopeRangeFalloffMarginInverse 5.0
+#define heightRangeFalloffMarginInverse 0.00625
+#define slopeRangeFalloffMarginInverse 6.0
 
 float calcHeightWeight(float value, float minVal, float maxVal) {
     return rangeFalloff(value, minVal, maxVal, heightRangeFalloffMarginInverse);
