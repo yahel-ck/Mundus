@@ -271,7 +271,18 @@ void main() {
 #endif
     
 #ifdef fogFlag
-#ifdef fogEquationFlag
+#define heightDensityFogFlag
+
+#ifdef heightDensityFogFlag
+    const float minFogDensity = 0.001;
+    const float maxFogDensity = 0.009; // Scale fog density
+    const float y0 = -300.0; // height where fog density is 'a'
+    const float y1 = 0.0; // Height where fog density is 'a/e^2' (approx. 0.1353*a)
+    const float k = 2.0 / (y1 - y0);
+
+    float fog = eyeDistance * ((maxFogDensity - minFogDensity) / (k * surfaceToCamera.y) * exp(-k * (v_position.y - y0)) * (1.0 - exp(-k * surfaceToCamera.y)) + minFogDensity);
+    fog = clamp(fog, 0.0, 1.0);
+#elif defined(fogEquationFlag)
     float fog = (eyeDistance - u_fogEquation.x) / (u_fogEquation.y - u_fogEquation.x);
     fog = clamp(fog, 0.0, 1.0);
     fog = pow(fog, u_fogEquation.z);
